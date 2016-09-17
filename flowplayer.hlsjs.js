@@ -108,7 +108,7 @@
                         }
                         common.removeClass(root, "quality-abr");
                         qualities.forEach(function (quality) {
-                            common.removeClass(root, "quality-" + dataQuality(quality));
+                            common.removeClass(root, "quality-" + dataQuality(quality.quality || quality));
                         });
                     },
                     qClean = function () {
@@ -117,7 +117,7 @@
                         common.find(".fp-quality-selector", root).forEach(common.removeNode);
                     },
                     qIndex = function () {
-                        return player.hlsQualities[player.qualities.indexOf(player.quality) + 1];
+                        return player.hlsQualities[player.qualities.findIndex(function (q) { return (q.quality || q) === player.quality; }) + 1];
                     },
                     initQualitySelection = function (hlsQualitiesConf, conf, data) {
                         var levels = data.levels,
@@ -420,7 +420,7 @@
                                         if (flow === "ready" && quality) {
                                             selectorIndex = quality === "abr"
                                                 ? 0
-                                                : player.qualities.indexOf(quality) + 1;
+                                                : player.qualities.findIndex(function (q) { return (q.quality || q) === quality; }) + 1;
                                             common.addClass(common.find(".fp-quality-selector li", root)[selectorIndex],
                                                     qActive);
                                         }
