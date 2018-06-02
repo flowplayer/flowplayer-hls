@@ -20,9 +20,9 @@
    $GIT_DESC$
 
 */
-(function () {
+(function() {
     "use strict";
-    var extension = function (Hls, flowplayer) {
+    var extension = function(Hls, flowplayer) {
         var engineName = "hlsjs",
             hlsconf,
             common = flowplayer.common,
@@ -34,22 +34,22 @@
             mse = win.MediaSource || win.WebKitMediaSource,
             performance = win.performance,
 
-            isHlsType = function (typ) {
+            isHlsType = function(typ) {
                 return typ.toLowerCase().indexOf("mpegurl") > -1;
             },
-            hlsQualitiesSupport = function (conf) {
+            hlsQualitiesSupport = function(conf) {
                 var hlsQualities = (conf.clip && conf.clip.hlsQualities) || conf.hlsQualities;
 
                 return support.inlineVideo &&
-                        (hlsQualities === true ||
+                    (hlsQualities === true ||
                         (hlsQualities && hlsQualities.length));
             },
-            destroyVideoTag = function (root) {
-                var vtag = common.findDirect("video", root)[0]
-                        || common.find(".fp-player>video", root)[0];
+            destroyVideoTag = function(root) {
+                var vtag = common.findDirect("video", root)[0] ||
+                    common.find(".fp-player>video", root)[0];
 
                 if (vtag) {
-                    common.find("source", vtag).forEach(function (source) {
+                    common.find("source", vtag).forEach(function(source) {
                         source.removeAttribute("src");
                     });
                     vtag.removeAttribute("src");
@@ -68,7 +68,7 @@
                     swapAudioCodecDate,
                     recoveryClass = "is-seeking",
                     posterClass = "is-poster",
-                    doRecover = function (conf, etype, isNetworkError) {
+                    doRecover = function(conf, etype, isNetworkError) {
                         if (conf.debug) {
                             console.log("recovery." + engineName, "<-", etype);
                         }
@@ -91,7 +91,7 @@
                         if (recover > 0) {
                             recover -= 1;
                         }
-                        bean.one(videoTag, "seeked." + engineName, function () {
+                        bean.one(videoTag, "seeked." + engineName, function() {
                             if (videoTag.paused) {
                                 common.removeClass(root, posterClass);
                                 player.poster = false;
@@ -100,8 +100,8 @@
                             common.removeClass(root, recoveryClass);
                         });
                     },
-                    handleError = function (errorCode, src, url) {
-                        var errobj = {code: errorCode};
+                    handleError = function(errorCode, src, url) {
+                        var errobj = { code: errorCode };
 
                         if (errorCode > 2) {
                             errobj.video = extend(player.video, {
@@ -114,13 +114,13 @@
 
                     maxLevel = 0,
                     lastSelectedLevel = -1,
-                    initQualitySelection = function (hlsQualitiesConf, data) {
+                    initQualitySelection = function(hlsQualitiesConf, data) {
                         var levels = data.levels,
                             hlsQualities,
-                            getLevel = function (q) {
-                                return isNaN(Number(q))
-                                    ? q.level
-                                    : q;
+                            getLevel = function(q) {
+                                return isNaN(Number(q)) ?
+                                    q.level :
+                                    q;
                             };
 
                         if (!hlsQualitiesConf || levels.length < 2) {
@@ -129,66 +129,66 @@
 
                         if (hlsQualitiesConf === "drive") {
                             switch (levels.length) {
-                            case 4:
-                                hlsQualities = [1, 2, 3];
-                                break;
-                            case 5:
-                                hlsQualities = [1, 2, 3, 4];
-                                break;
-                            case 6:
-                                hlsQualities = [1, 3, 4, 5];
-                                break;
-                            case 7:
-                                hlsQualities = [1, 3, 5, 6];
-                                break;
-                            case 8:
-                                hlsQualities = [1, 3, 6, 7];
-                                break;
-                            default:
-                                if (levels.length < 3 ||
+                                case 4:
+                                    hlsQualities = [1, 2, 3];
+                                    break;
+                                case 5:
+                                    hlsQualities = [1, 2, 3, 4];
+                                    break;
+                                case 6:
+                                    hlsQualities = [1, 3, 4, 5];
+                                    break;
+                                case 7:
+                                    hlsQualities = [1, 3, 5, 6];
+                                    break;
+                                case 8:
+                                    hlsQualities = [1, 3, 6, 7];
+                                    break;
+                                default:
+                                    if (levels.length < 3 ||
                                         (levels[0].height && levels[2].height && levels[0].height === levels[2].height)) {
-                                    return;
-                                }
-                                hlsQualities = [1, 2];
+                                        return;
+                                    }
+                                    hlsQualities = [1, 2];
                             }
                             hlsQualities.unshift(-1);
                         } else {
                             switch (typeof hlsQualitiesConf) {
-                            case "object":
-                                hlsQualities = hlsQualitiesConf.map(getLevel);
-                                break;
-                            case "string":
-                                hlsQualities = hlsQualitiesConf.split(/\s*,\s*/).map(Number);
-                                break;
-                            default:
-                                hlsQualities = levels.map(function (_level, i) {
-                                    return i;
-                                });
-                                hlsQualities.unshift(-1);
+                                case "object":
+                                    hlsQualities = hlsQualitiesConf.map(getLevel);
+                                    break;
+                                case "string":
+                                    hlsQualities = hlsQualitiesConf.split(/\s*,\s*/).map(Number);
+                                    break;
+                                default:
+                                    hlsQualities = levels.map(function(_level, i) {
+                                        return i;
+                                    });
+                                    hlsQualities.unshift(-1);
                             }
                         }
 
-                        hlsQualities = hlsQualities.filter(function (q) {
+                        hlsQualities = hlsQualities.filter(function(q) {
                             if (q > -1 && q < levels.length) {
                                 var level = levels[q];
 
                                 // do not check audioCodec,
                                 // as e.g. HE_AAC is decoded as LC_AAC by hls.js on Android
                                 return !level.videoCodec ||
-                                        (level.videoCodec &&
+                                    (level.videoCodec &&
                                         mse.isTypeSupported('video/mp4;codecs=' + level.videoCodec));
                             } else {
                                 return q === -1;
                             }
                         });
 
-                        player.video.qualities = hlsQualities.map(function (idx, i) {
+                        player.video.qualities = hlsQualities.map(function(idx, i) {
                             var level = levels[idx],
-                                q = typeof hlsQualitiesConf === "object"
-                                    ? hlsQualitiesConf.filter(function (q) {
-                                        return getLevel(q) === idx;
-                                    })[0]
-                                    : idx,
+                                q = typeof hlsQualitiesConf === "object" ?
+                                hlsQualitiesConf.filter(function(q) {
+                                    return getLevel(q) === idx;
+                                })[0] :
+                                idx,
                                 label = "Level " + (i + 1);
 
                             if (idx < 0) {
@@ -196,20 +196,22 @@
                             } else if (q.label) {
                                 label = q.label;
                             } else {
-                                if (level.width && level.height) {
+                                if (level.name) {
+                                    label = level.name;
+                                } else if (level.width && level.height) {
                                     label = Math.min(level.width, level.height) + "p";
                                 }
                                 if (hlsQualitiesConf !== "drive" && level.bitrate) {
                                     label += " (" + Math.round(level.bitrate / 1000) + "k)";
                                 }
                             }
-                            return {value: idx, label: label};
+                            return { value: idx, label: label };
                         });
 
                         if (lastSelectedLevel > -1 || hlsQualities.indexOf(-1) < 0) {
-                            hls.loadLevel = hlsQualities.indexOf(lastSelectedLevel) < 0
-                                ? hlsQualities[0]
-                                : lastSelectedLevel;
+                            hls.loadLevel = hlsQualities.indexOf(lastSelectedLevel) < 0 ?
+                                hlsQualities[0] :
+                                lastSelectedLevel;
                             hls.config.startLevel = hls.loadLevel;
                             player.video.quality = hls.loadLevel;
                         } else {
@@ -221,8 +223,8 @@
                     engine = {
                         engineName: engineName,
 
-                        pick: function (sources) {
-                            var source = sources.filter(function (s) {
+                        pick: function(sources) {
+                            var source = sources.filter(function(s) {
                                 return isHlsType(s.type);
                             })[0];
 
@@ -232,7 +234,7 @@
                             return source;
                         },
 
-                        load: function (video) {
+                        load: function(video) {
                             var conf = player.conf,
                                 EVENTS = {
                                     ended: "finish",
@@ -261,21 +263,21 @@
                                 destroyVideoTag(root);
                                 videoTag = common.createElement("video", {
                                     "class": "fp-engine " + engineName + "-engine",
-                                    "autoplay": autoplay
-                                        ? "autoplay"
-                                        : false,
+                                    "autoplay": autoplay ?
+                                        "autoplay" :
+                                        false,
                                     "volume": player.volumeLevel
                                 });
                                 if (support.mutedAutoplay && !conf.splash && autoplay) {
                                     videoTag.muted = true;
                                 }
 
-                                Object.keys(EVENTS).forEach(function (key) {
+                                Object.keys(EVENTS).forEach(function(key) {
                                     var flow = EVENTS[key],
                                         type = key + "." + engineName,
                                         arg;
 
-                                    bean.on(videoTag, type, function (e) {
+                                    bean.on(videoTag, type, function(e) {
                                         if (conf.debug && flow.indexOf("progress") < 0) {
                                             console.log(type, "->", flow, e.originalEvent);
                                         }
@@ -283,11 +285,11 @@
                                         var ct = videoTag.currentTime,
                                             seekable = videoTag.seekable,
                                             updatedVideo = player.video,
-                                            liveResumePosition = player.dvr
-                                                ? updatedVideo.seekOffset
-                                                : player.live
-                                                    ? hls.liveSyncPosition
-                                                    : 0,
+                                            liveResumePosition = player.dvr ?
+                                            updatedVideo.seekOffset :
+                                            player.live ?
+                                            hls.liveSyncPosition :
+                                            0,
                                             buffered = videoTag.buffered,
                                             i,
                                             buffends = [],
@@ -295,83 +297,83 @@
                                             errorCode;
 
                                         switch (flow) {
-                                        case "ready":
-                                            arg = extend(updatedVideo, {
-                                                duration: videoTag.duration,
-                                                seekable: seekable.length && seekable.end(null),
-                                                width: videoTag.videoWidth,
-                                                height: videoTag.videoHeight,
-                                                url: src
-                                            });
-                                            break;
-                                        case "resume":
-                                            if (!hlsUpdatedConf.bufferWhilePaused) {
-                                                hls.startLoad(ct);
-                                            }
-                                            if (ct < liveResumePosition) {
-                                                videoTag.currentTime = liveResumePosition;
-                                            }
-                                            break;
-                                        case "seek":
-                                            if (!hlsUpdatedConf.bufferWhilePaused && videoTag.paused) {
-                                                hls.stopLoad();
-                                            }
-                                            arg = ct;
-                                            break;
-                                        case "pause":
-                                            if (!hlsUpdatedConf.bufferWhilePaused) {
-                                                hls.stopLoad();
-                                            }
-                                            break;
-                                        case "progress":
-                                            arg = ct;
-                                            break;
-                                        case "speed":
-                                            arg = videoTag.playbackRate;
-                                            break;
-                                        case "volume":
-                                            arg = videoTag.volume;
-                                            break;
-                                        case "buffer":
-                                            for (i = 0; i < buffered.length; i += 1) {
-                                                buffends.push(buffered.end(i));
-                                            }
-                                            arg = buffends.filter(function (b) {
-                                                return b >= ct;
-                                            }).sort()[0];
-                                            updatedVideo.buffer = arg;
-                                            break;
-                                        case "finish":
-                                            if (hlsUpdatedConf.bufferWhilePaused && hls.autoLevelEnabled &&
+                                            case "ready":
+                                                arg = extend(updatedVideo, {
+                                                    duration: videoTag.duration,
+                                                    seekable: seekable.length && seekable.end(null),
+                                                    width: videoTag.videoWidth,
+                                                    height: videoTag.videoHeight,
+                                                    url: src
+                                                });
+                                                break;
+                                            case "resume":
+                                                if (!hlsUpdatedConf.bufferWhilePaused) {
+                                                    hls.startLoad(ct);
+                                                }
+                                                if (ct < liveResumePosition) {
+                                                    videoTag.currentTime = liveResumePosition;
+                                                }
+                                                break;
+                                            case "seek":
+                                                if (!hlsUpdatedConf.bufferWhilePaused && videoTag.paused) {
+                                                    hls.stopLoad();
+                                                }
+                                                arg = ct;
+                                                break;
+                                            case "pause":
+                                                if (!hlsUpdatedConf.bufferWhilePaused) {
+                                                    hls.stopLoad();
+                                                }
+                                                break;
+                                            case "progress":
+                                                arg = ct;
+                                                break;
+                                            case "speed":
+                                                arg = videoTag.playbackRate;
+                                                break;
+                                            case "volume":
+                                                arg = videoTag.volume;
+                                                break;
+                                            case "buffer":
+                                                for (i = 0; i < buffered.length; i += 1) {
+                                                    buffends.push(buffered.end(i));
+                                                }
+                                                arg = buffends.filter(function(b) {
+                                                    return b >= ct;
+                                                }).sort()[0];
+                                                updatedVideo.buffer = arg;
+                                                break;
+                                            case "finish":
+                                                if (hlsUpdatedConf.bufferWhilePaused && hls.autoLevelEnabled &&
                                                     (updatedVideo.loop || conf.playlist.length < 2 || conf.advance === false)) {
-                                                hls.nextLoadLevel = maxLevel;
-                                            }
-                                            break;
-                                        case "error":
-                                            errorCode = videoTag.error && videoTag.error.code;
+                                                    hls.nextLoadLevel = maxLevel;
+                                                }
+                                                break;
+                                            case "error":
+                                                errorCode = videoTag.error && videoTag.error.code;
 
-                                            if ((hlsUpdatedConf.recoverMediaError && (errorCode === 3 || !errorCode)) ||
+                                                if ((hlsUpdatedConf.recoverMediaError && (errorCode === 3 || !errorCode)) ||
                                                     (hlsUpdatedConf.recoverNetworkError && errorCode === 2) ||
                                                     (hlsUpdatedConf.recover && (errorCode === 2 || errorCode === 3))) {
-                                                e.preventDefault();
-                                                doRecover(conf, flow, errorCode === 2);
-                                                return;
-                                            }
+                                                    e.preventDefault();
+                                                    doRecover(conf, flow, errorCode === 2);
+                                                    return;
+                                                }
 
-                                            arg = handleError(errorCode, src);
-                                            break;
+                                                arg = handleError(errorCode, src);
+                                                break;
                                         }
 
                                         player.trigger(flow, [player, arg]);
                                     });
                                 });
 
-                                player.on("error." + engineName, function () {
+                                player.on("error." + engineName, function() {
                                     if (hls) {
                                         player.engine.unload();
                                     }
 
-                                }).on("beforeseek." + engineName, function (e, api, pos) {
+                                }).on("beforeseek." + engineName, function(e, api, pos) {
                                     if (pos === undefined) {
                                         e.preventDefault();
                                     } else if (!hlsUpdatedConf.bufferWhilePaused && api.paused) {
@@ -379,7 +381,7 @@
                                     }
                                 });
 
-                                player.on("quality." + engineName, function (_e, _api, q) {
+                                player.on("quality." + engineName, function(_e, _api, q) {
                                     if (hlsUpdatedConf.smoothSwitching) {
                                         hls.nextLevel = q;
                                     } else {
@@ -403,7 +405,7 @@
                             // reset
                             maxLevel = 0;
 
-                            Object.keys(hlsUpdatedConf).forEach(function (key) {
+                            Object.keys(hlsUpdatedConf).forEach(function(key) {
                                 if (!Hls.DefaultConfig.hasOwnProperty(key)) {
                                     delete hlsClientConf[key];
                                 }
@@ -411,40 +413,40 @@
                                 var value = hlsUpdatedConf[key];
 
                                 switch (key) {
-                                case "adaptOnStartOnly":
-                                    if (value) {
-                                        hlsClientConf.startLevel = -1;
-                                    }
-                                    break;
-                                case "autoLevelCapping":
-                                    if (value === false) {
-                                        value = -1;
-                                    }
-                                    hlsClientConf[key] = value;
-                                    break;
-                                case "startLevel":
-                                    switch (value) {
-                                    case "auto":
-                                        value = -1;
+                                    case "adaptOnStartOnly":
+                                        if (value) {
+                                            hlsClientConf.startLevel = -1;
+                                        }
                                         break;
-                                    case "firstLevel":
-                                        value = undefined;
+                                    case "autoLevelCapping":
+                                        if (value === false) {
+                                            value = -1;
+                                        }
+                                        hlsClientConf[key] = value;
                                         break;
-                                    }
-                                    hlsClientConf[key] = value;
-                                    break;
-                                case "recover": // DEPRECATED
-                                    hlsUpdatedConf.recoverMediaError = false;
-                                    hlsUpdatedConf.recoverNetworkError = false;
-                                    recover = value;
-                                    break;
-                                case "strict":
-                                    if (value) {
+                                    case "startLevel":
+                                        switch (value) {
+                                            case "auto":
+                                                value = -1;
+                                                break;
+                                            case "firstLevel":
+                                                value = undefined;
+                                                break;
+                                        }
+                                        hlsClientConf[key] = value;
+                                        break;
+                                    case "recover": // DEPRECATED
                                         hlsUpdatedConf.recoverMediaError = false;
                                         hlsUpdatedConf.recoverNetworkError = false;
-                                        recover = 0;
-                                    }
-                                    break;
+                                        recover = value;
+                                        break;
+                                    case "strict":
+                                        if (value) {
+                                            hlsUpdatedConf.recoverMediaError = false;
+                                            hlsUpdatedConf.recoverNetworkError = false;
+                                            recover = 0;
+                                        }
+                                        break;
 
                                 }
                             });
@@ -454,12 +456,12 @@
                             recoverMediaErrorDate = null;
                             swapAudioCodecDate = null;
 
-                            Object.keys(HLSEVENTS).forEach(function (key) {
+                            Object.keys(HLSEVENTS).forEach(function(key) {
                                 var etype = HLSEVENTS[key],
                                     listeners = hlsUpdatedConf.listeners,
                                     expose = listeners && listeners.indexOf(etype) > -1;
 
-                                hls.on(etype, function (e, data) {
+                                hls.on(etype, function(e, data) {
                                     var fperr,
                                         errobj = {},
                                         errors = player.conf.errors,
@@ -469,79 +471,79 @@
                                         src = updatedVideo.src;
 
                                     switch (key) {
-                                    case "MANIFEST_PARSED":
-                                        if (hlsQualitiesSupport(conf) && !player.pluginQualitySelectorEnabled) {
-                                            initQualitySelection(hlsQualitiesConf, data);
-                                        }
-                                        break;
-                                    case "MANIFEST_LOADED":
-                                        if (data.audioTracks && data.audioTracks.length &&
+                                        case "MANIFEST_PARSED":
+                                            if (hlsQualitiesSupport(conf) && !player.pluginQualitySelectorEnabled) {
+                                                initQualitySelection(hlsQualitiesConf, data);
+                                            }
+                                            break;
+                                        case "MANIFEST_LOADED":
+                                            if (data.audioTracks && data.audioTracks.length &&
                                                 (!hls.audioTracks || !hls.audioTracks.length)) {
-                                            errors.push("Alternate audio tracks not supported by light plugin build.");
-                                            errobj = handleError(errors.length - 1, player.video.src);
-                                            player.trigger('error', [player, errobj]);
-                                            errors.slice(0, errors.length - 1);
-                                        }
-                                        break;
-                                    case "MEDIA_ATTACHED":
-                                        hls.loadSource(src);
-                                        break;
-                                    case "FRAG_LOADED":
-                                        if (hlsUpdatedConf.bufferWhilePaused && !player.live &&
+                                                errors.push("Alternate audio tracks not supported by light plugin build.");
+                                                errobj = handleError(errors.length - 1, player.video.src);
+                                                player.trigger('error', [player, errobj]);
+                                                errors.slice(0, errors.length - 1);
+                                            }
+                                            break;
+                                        case "MEDIA_ATTACHED":
+                                            hls.loadSource(src);
+                                            break;
+                                        case "FRAG_LOADED":
+                                            if (hlsUpdatedConf.bufferWhilePaused && !player.live &&
                                                 hls.autoLevelEnabled && hls.nextLoadLevel > maxLevel) {
-                                            maxLevel = hls.nextLoadLevel;
-                                        }
-                                        break;
-                                    case "LEVEL_UPDATED":
-                                        if (player.live) {
-                                            extend(updatedVideo, {
-                                                seekOffset: data.details.fragments[0].start + hls.config.nudgeOffset,
-                                                duration: hls.liveSyncPosition
-                                            });
-                                            if (player.dvr && player.playing) {
-                                                player.trigger('dvrwindow', [player, {
-                                                    start: updatedVideo.seekOffset,
-                                                    end: hls.liveSyncPosition
-                                                }]);
+                                                maxLevel = hls.nextLoadLevel;
                                             }
-                                        }
-                                        break;
-                                    case "BUFFER_APPENDED":
-                                        common.removeClass(root, recoveryClass);
-                                        break;
-                                    case "ERROR":
-                                        if (data.fatal || hlsUpdatedConf.strict) {
-                                            switch (data.type) {
-                                            case ERRORTYPES.NETWORK_ERROR:
-                                                if (hlsUpdatedConf.recoverNetworkError || recover) {
-                                                    doRecover(conf, data.type, true);
-                                                } else if (data.frag && data.frag.url) {
-                                                    errobj.url = data.frag.url;
-                                                    fperr = 2;
-                                                } else {
-                                                    fperr = 4;
+                                            break;
+                                        case "LEVEL_UPDATED":
+                                            if (player.live) {
+                                                extend(updatedVideo, {
+                                                    seekOffset: data.details.fragments[0].start + hls.config.nudgeOffset,
+                                                    duration: hls.liveSyncPosition
+                                                });
+                                                if (player.dvr && player.playing) {
+                                                    player.trigger('dvrwindow', [player, {
+                                                        start: updatedVideo.seekOffset,
+                                                        end: hls.liveSyncPosition
+                                                    }]);
                                                 }
-                                                break;
-                                            case ERRORTYPES.MEDIA_ERROR:
-                                                if (hlsUpdatedConf.recoverMediaError || recover) {
-                                                    doRecover(conf, data.type);
-                                                } else {
-                                                    fperr = 3;
-                                                }
-                                                break;
-                                            default:
-                                                fperr = 5;
                                             }
+                                            break;
+                                        case "BUFFER_APPENDED":
+                                            common.removeClass(root, recoveryClass);
+                                            break;
+                                        case "ERROR":
+                                            if (data.fatal || hlsUpdatedConf.strict) {
+                                                switch (data.type) {
+                                                    case ERRORTYPES.NETWORK_ERROR:
+                                                        if (hlsUpdatedConf.recoverNetworkError || recover) {
+                                                            doRecover(conf, data.type, true);
+                                                        } else if (data.frag && data.frag.url) {
+                                                            errobj.url = data.frag.url;
+                                                            fperr = 2;
+                                                        } else {
+                                                            fperr = 4;
+                                                        }
+                                                        break;
+                                                    case ERRORTYPES.MEDIA_ERROR:
+                                                        if (hlsUpdatedConf.recoverMediaError || recover) {
+                                                            doRecover(conf, data.type);
+                                                        } else {
+                                                            fperr = 3;
+                                                        }
+                                                        break;
+                                                    default:
+                                                        fperr = 5;
+                                                }
 
-                                            if (fperr !== undefined) {
-                                                errobj = handleError(fperr, src, data.url);
-                                                player.trigger("error", [player, errobj]);
-                                            }
-                                        } else if (data.details === ERRORDETAILS.FRAG_LOOP_LOADING_ERROR ||
+                                                if (fperr !== undefined) {
+                                                    errobj = handleError(fperr, src, data.url);
+                                                    player.trigger("error", [player, errobj]);
+                                                }
+                                            } else if (data.details === ERRORDETAILS.FRAG_LOOP_LOADING_ERROR ||
                                                 data.details === ERRORDETAILS.BUFFER_STALLED_ERROR) {
-                                            common.addClass(root, recoveryClass);
-                                        }
-                                        break;
+                                                common.addClass(root, recoveryClass);
+                                            }
+                                            break;
                                     }
 
                                     // memory leak if all these are re-triggered by api #29
@@ -552,7 +554,7 @@
                             });
 
                             if (hlsUpdatedConf.adaptOnStartOnly) {
-                                bean.one(videoTag, "timeupdate." + engineName, function () {
+                                bean.one(videoTag, "timeupdate." + engineName, function() {
                                     hls.loadLevel = hls.loadLevel;
                                 });
                             }
@@ -562,7 +564,7 @@
                             if (autoplay && videoTag.paused) {
                                 var playPromise = videoTag.play();
                                 if (playPromise !== undefined) {
-                                    playPromise.catch(function () {
+                                    playPromise.catch(function() {
                                         if (!support.mutedAutoplay) {
                                             player.unload();
                                             player.message("Please click the play button", 3000);
@@ -572,32 +574,32 @@
                             }
                         },
 
-                        resume: function () {
+                        resume: function() {
                             videoTag.play();
                         },
 
-                        pause: function () {
+                        pause: function() {
                             videoTag.pause();
                         },
 
-                        seek: function (time) {
+                        seek: function(time) {
                             if (videoTag) {
                                 videoTag.currentTime = time;
                             }
                         },
 
-                        volume: function (level) {
+                        volume: function(level) {
                             if (videoTag) {
                                 videoTag.volume = level;
                             }
                         },
 
-                        speed: function (val) {
+                        speed: function(val) {
                             videoTag.playbackRate = val;
                             player.trigger('speed', [player, val]);
                         },
 
-                        unload: function () {
+                        unload: function() {
                             if (hls) {
                                 var listeners = "." + engineName;
 
@@ -616,11 +618,11 @@
             };
 
         if (Hls.isSupported() &&
-                (parseInt(version.split(".")[0]) > 6 || (/adhoc|dev/.test(version)))) {
+            (parseInt(version.split(".")[0]) > 6 || (/adhoc|dev/.test(version)))) {
             // only load engine if it can be used
             engineImpl.engineName = engineName; // must be exposed
             engineImpl[engineName + "ClientVersion"] = Hls.version;
-            engineImpl.canPlay = function (type, conf) {
+            engineImpl.canPlay = function(type, conf) {
                 if (conf[engineName] === false || conf.clip[engineName] === false) {
                     // engine disabled for player
                     return false;
@@ -639,14 +641,14 @@
 
             // issue #94
             if (support.mutedAutoplay && (version === "7.1.1" || version === "7.1.0")) {
-                flowplayer(function (api, root) {
+                flowplayer(function(api, root) {
                     var c = api.conf;
 
                     if (!c.splash && !c.autoplay) {
                         api.splash = true;
-                        c.splash = typeof c.poster === "string"
-                            ? c.poster
-                            : true;
+                        c.splash = typeof c.poster === "string" ?
+                            c.poster :
+                            true;
                         c.poster = undefined;
                         c.autoplay = true;
                         destroyVideoTag(root);
